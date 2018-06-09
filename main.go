@@ -72,6 +72,7 @@ func (cli *CLI) Run() {
 	} else {
 		balanceCmd.Usage()
 		createCmd.Usage()
+		sendCmd.Usage()
 		os.Exit(1)
 	}
 }
