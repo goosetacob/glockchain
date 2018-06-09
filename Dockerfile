@@ -1,7 +1,7 @@
 FROM golang:alpine
 
-WORKDIR $GOPATH/src/github.com/goosetaco/glockchain/
+WORKDIR $GOPATH/src/github.com/goosetacob/glockchain/
 
-COPY ./ $GOPATH/src/github.com/goosetaco/glockchain/
+COPY ./ $GOPATH/src/github.com/goosetacob/glockchain/main
 
-CMD go run main.go
+CMD ./main
