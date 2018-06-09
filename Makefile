@@ -19,9 +19,6 @@ clean:
 	docker kill $(docker ps --filter "label=glockchain" -q)
 
 murder:
-	# kill the container
-	docker kill "$(docker ps --filter "label=glockchain" -q)"
-
 	# delete db
 	rm glockchain_ledger
 

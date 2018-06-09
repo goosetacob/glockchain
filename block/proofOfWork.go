@@ -49,7 +49,7 @@ func (pow *ProofOfWork) prepareData(nonce int) []byte {
 	data := bytes.Join(
 		[][]byte{
 			pow.block.PrevBlockHash,
-			pow.block.Data,
+			pow.block.HashTransactions(),
 			intToHexHelp(pow.block.Timestamp),
 			intToHexHelp(targetBits),
 			intToHexHelp(nonce),
@@ -65,7 +65,7 @@ func (pow *ProofOfWork) run() (int, []byte) {
 	var hash [32]byte // 32 bytes = 256{32*8} bits
 	var hashInt big.Int
 
-	logrus.Printf("Mining the block containing \"%s\"", pow.block.Data)
+	logrus.Printf("Mining the block containing \"%s\"", pow.block.Transactions)
 	var nonce int
 	for nonce = 0; nonce < maxNonce; nonce++ {
 		// serialize block and nonce data
