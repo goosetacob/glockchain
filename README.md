@@ -1,9 +1,9 @@
 # Glockchain
-Implementing a simple blockchain with Golang and docker.
+Implementing a simple blockchain.
 
 Following along with https://jeiwan.cc/posts/building-blockchain-in-go-part-1/ for reference.
 
-### How to use
+### How to Use
 *still wip so may change may change before i can update this*
 ```
 gustavo at huitzilopochtli in ~/Projects/go/src/github.com/goosetacob/glockchain (master)
