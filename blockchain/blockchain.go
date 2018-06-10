@@ -59,7 +59,6 @@ func (chain *Blockchain) MineBlock(transactions []*transaction.Transaction) {
 	if err != nil {
 		logrus.Panic(err)
 	}
-	logrus.Info(newLeadingHash)
 	chain.leadingHash = newLeadingHash
 }
 
