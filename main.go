@@ -55,7 +55,7 @@ func (cli *CLI) Run() {
 					createCmd.Usage()
 					os.Exit(1)
 				}
-				cli.newGlockchain(*createAddress)
+				cli.newBlockchain(*createAddress)
 			}
 		default:
 
@@ -70,7 +70,7 @@ func (cli *CLI) Run() {
 }
 
 // creates a Blockchain
-func (cli *CLI) newGlockchain(address string) {
+func (cli *CLI) newBlockchain(address string) {
 	blockchain := blockchain.NewBlockchain(address)
 	defer blockchain.Shutdown()
 	logrus.Print("Done!")
