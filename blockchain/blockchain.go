@@ -1,95 +1,66 @@
 package blockchain
 
 import (
-	"bytes"
-	"encoding/gob"
 	"encoding/hex"
 
-	"github.com/boltdb/bolt"
 	"github.com/goosetacob/glockchain/block"
+	"github.com/goosetacob/glockchain/datastore"
 	"github.com/goosetacob/glockchain/transaction"
 	"github.com/sirupsen/logrus"
 )
 
-// dbfile is the diskfile we're going to store data in
-const dbfile = "glockchain_ledger"
-
-// blocksBucket is the BoltDB bucket that's going to store block-specific data
-const blocksBucket = "blocks"
-
 // genesisCoinbaseData
-const genesisCoinbaseData = "GooseCoin will ICO before NandoCoin"
+const genesisCoinbaseData = "GooseCoin `all I want is to just have fun live my life like a son of a gun`"
 
 // Blockchain data structure
 type Blockchain struct {
 	leadingHash []byte
-	database    *bolt.DB
+	datastore   *datastore.DataStore
 }
 
 // NewBlockchain initializes a new blockchain with a genesis block
 func NewBlockchain(address string) *Blockchain {
-	var newLeadHash []byte
-	db, err := bolt.Open(dbfile, 0600, nil)
+	var err error
+	datastore, err := datastore.GetDataStore()
 	if err != nil {
-		logrus.Errorf("cannot open dbfile: %v\n", err)
+		logrus.Error(err)
 	}
 
-	err = db.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(blocksBucket))
-
-		if bucket == nil {
-			coinbaseTransaction := transaction.NewCoinbaseTX(address, genesisCoinbaseData)
-			genesis := newGenesisBlock(coinbaseTransaction)
-			bucket, _ := tx.CreateBucket([]byte(blocksBucket))
-			err = bucket.Put(genesis.Hash, serializeBlock(genesis))
-			err = bucket.Put([]byte("l"), genesis.Hash)
-			newLeadHash = genesis.Hash
-		} else {
-			newLeadHash = bucket.Get([]byte("l"))
+	var lastHash []byte
+	lastHash, err = datastore.GetLastHash()
+	if err != nil {
+		// TODO: come up with better way to distinguish between DB error, or new Glockchain
+		coinbaseTransaction := transaction.NewCoinbaseTX(address, genesisCoinbaseData)
+		genesisBlock := newGenesisBlock(coinbaseTransaction)
+		lastHash, err = datastore.AddBlock(genesisBlock)
+		if err != nil {
+			logrus.Error(err)
 		}
-		return nil
-	})
+	}
 
-	return &Blockchain{newLeadHash, db}
+	return &Blockchain{lastHash, datastore}
 }
 
 // Shutdown saves and shutdsdown blockchain program
 func (chain *Blockchain) Shutdown() {
-	chain.database.Close()
+	chain.datastore.Close()
 }
 
 // MineBlock mines a new block with the provided transactions
 func (chain *Blockchain) MineBlock(transactions []*transaction.Transaction) {
-	var lastHash []byte
-
-	err := chain.database.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(blocksBucket))
-		lastHash = b.Get([]byte("l"))
-
-		return nil
-	})
-
+	lastHash, err := chain.datastore.GetLastHash()
 	if err != nil {
 		logrus.Panic(err)
 	}
 
 	newBlock := block.NewBlock(transactions, lastHash)
 
-	err = chain.database.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(blocksBucket))
-		err := b.Put(newBlock.Hash, serializeBlock(newBlock))
-		if err != nil {
-			logrus.Panic(err)
-		}
-
-		err = b.Put([]byte("l"), newBlock.Hash)
-		if err != nil {
-			logrus.Panic(err)
-		}
-
-		chain.leadingHash = newBlock.Hash
-		return nil
-	})
+	newLeadingHash, err := chain.datastore.AddBlock(newBlock)
+	if err != nil {
+		logrus.Panic(err)
+	}
+	logrus.Info(newLeadingHash)
+	chain.leadingHash = newLeadingHash
 }
 
 // FindUTXO gets the outputs of unspend transactions
@@ -181,29 +152,4 @@ Work:
 // NewGenesisBlock creates a genesis block
 func newGenesisBlock(coinbase *transaction.Transaction) *block.Block {
 	return block.NewBlock([]*transaction.Transaction{coinbase}, []byte{})
-}
-
-// serializeBLock converts a block struct into a byte array
-func serializeBlock(b *block.Block) []byte {
-	var result bytes.Buffer
-	encoder := gob.NewEncoder(&result)
-	err := encoder.Encode(b)
-	if err != nil {
-		logrus.Errorf("error encoding: %v", err)
-	}
-
-	return result.Bytes()
-}
-
-// deserializeBlock converts a byte array into a block struct
-func deserializeBlock(d []byte) *block.Block {
-	var block block.Block
-
-	decoder := gob.NewDecoder(bytes.NewReader(d))
-	err := decoder.Decode(&block)
-	if err != nil {
-		logrus.Errorf("error decoding: %v", err)
-	}
-
-	return &block
 }

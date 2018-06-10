@@ -1,7 +1,21 @@
-FROM golang:alpine
-
+# Builder Container
+FROM golang:1.10 as builder
 WORKDIR $GOPATH/src/github.com/goosetacob/glockchain/
 
-COPY ./ $GOPATH/src/github.com/goosetacob/glockchain/main
+# Install dep
+RUN go get -u github.com/golang/dep/...
 
-CMD ./main
+# Copy code from host and compile
+COPY Gopkg.toml Gopkg.lock ./
+RUN dep ensure --vendor-only
+COPY . ./
+RUN go build -o /bin/glockchain main.go
+
+# Final Output Container
+FROM golang:alpine
+
+# Copy binary to builder container to and final container
+COPY --from=builder /bin/glockchain /bin/glockchain
+
+# Run
+ENTRYPOINT ["/bin/server"]

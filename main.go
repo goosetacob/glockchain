@@ -14,8 +14,6 @@ type CLI struct{}
 
 // Run CLI
 func (cli *CLI) Run() {
-	//printChainCmd := flag.NewFlagSet("print", flag.ExitOnError)
-
 	balanceCmd := flag.NewFlagSet("balance", flag.ExitOnError)
 	balanceAddress := balanceCmd.String("address", "", "The address to send genesis block reward to")
 
@@ -29,12 +27,6 @@ func (cli *CLI) Run() {
 
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
-		// case "print":
-		// 	if err := printChainCmd.Parse(os.Args[2:]); err != nil {
-		// 		logrus.Errorf("error: %v", err)
-		// 	} else {
-		// 		cli.printChain()
-		// 	}
 		case "send":
 			if err := sendCmd.Parse(os.Args[2:]); err != nil {
 				logrus.Panic(err)
@@ -77,25 +69,6 @@ func (cli *CLI) Run() {
 	}
 }
 
-// printChain prints the contents of the chain
-// func (cli *CLI) printChain() {
-// 	itr := cli.chain.NewIterator()
-
-// 	for {
-// 		// get the next block
-// 		nextBlock := itr.Next()
-
-// 		// print it's info
-// 		pow := block.NewProofOfWork(nextBlock)
-// 		logrus.Printf("\nPrevious Hash: %x\nData: %s\nHash: %x\nValidate: %t", nextBlock.PrevBlockHash, nextBlock.Data, nextBlock.Hash, pow.Validate())
-
-// 		// check if we're done
-// 		if len(nextBlock.PrevBlockHash) == 0 {
-// 			break
-// 		}
-// 	}
-// }
-
 // creates a Blockchain
 func (cli *CLI) newGlockchain(address string) {
 	blockchain := blockchain.NewBlockchain(address)
@@ -118,6 +91,7 @@ func (cli *CLI) getBalance(address string) {
 	logrus.Printf("Balance of '%s': %d", address, balance)
 }
 
+// send currency from one user to another
 func (cli *CLI) send(from, to string, amount int) {
 	chain := blockchain.NewBlockchain(from)
 	defer chain.Shutdown()
