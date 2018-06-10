@@ -73,7 +73,7 @@ func (cli *CLI) Run() {
 func (cli *CLI) newGlockchain(address string) {
 	blockchain := blockchain.NewBlockchain(address)
 	defer blockchain.Shutdown()
-	logrus.Println("Done!")
+	logrus.Print("Done!")
 }
 
 // getBalance
@@ -99,7 +99,7 @@ func (cli *CLI) send(from, to string, amount int) {
 	accumulated, unspentOutputs := chain.FindSpendableOutputs(from, amount)
 	tx := transaction.NewUTXOTransaction(from, to, amount, accumulated, unspentOutputs)
 	chain.MineBlock([]*transaction.Transaction{tx})
-	logrus.Println("Success!")
+	logrus.Print("Success!")
 }
 
 func main() {
