@@ -15,7 +15,7 @@ type CLI struct{}
 // Run CLI
 func (cli *CLI) Run() {
 	balanceCmd := flag.NewFlagSet("balance", flag.ExitOnError)
-	balanceAddress := balanceCmd.String("address", "", "The address to send genesis block reward to")
+	balanceAddress := balanceCmd.String("address", "", "The address for which to check its balance")
 
 	createCmd := flag.NewFlagSet("create", flag.ExitOnError)
 	createAddress := createCmd.String("address", "", "The address to send genesis block reward to")
@@ -58,7 +58,9 @@ func (cli *CLI) Run() {
 				cli.newBlockchain(*createAddress)
 			}
 		default:
-
+			balanceCmd.Usage()
+			createCmd.Usage()
+			sendCmd.Usage()
 			os.Exit(1)
 		}
 	} else {
